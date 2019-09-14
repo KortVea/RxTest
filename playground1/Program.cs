@@ -29,6 +29,7 @@ namespace playground1
 
         private static async Task test2()
         {
+            var scheduler = new TestScheduler();
             var bandStatus = new BehaviorSubject<Status>(Status.Disconnected);
             var closingWindowCondition = bandStatus.Where(i => i != Status.Disconnected).DistinctUntilChanged();
 
@@ -37,18 +38,20 @@ namespace playground1
             var condition = bandStatus.Window(openingWindowCondition, _ => closingWindowCondition);
 
             var idx = 0;
-            var initialdt = DateTimeOffset.Now;
+            var initialdt = scheduler.Now;
 
             var signalingSub = new Subject<Unit>();
 
-            condition.SubscribeOn(TaskPoolScheduler.Default).Subscribe(w =>
+            condition
+                .ObserveOn(scheduler)
+                .Subscribe(w =>
             {
-                initialdt = DateTimeOffset.Now;
+                initialdt = scheduler.Now;
                 Console.WriteLine($"Window {idx++} is here");
                 w.Subscribe(_ => { }, () =>
                 {
-                    Console.WriteLine($"(Window {idx} closing)");
-                    if (DateTimeOffset.Now - initialdt > TimeSpan.FromSeconds(3))
+                    Console.WriteLine($">>>>> Window {idx} closing");
+                    if (scheduler.Now - initialdt > TimeSpan.FromSeconds(3))
                     {
                         signalingSub.OnNext(Unit.Default);
                     }
@@ -56,17 +59,9 @@ namespace playground1
                 });
             });
 
-            ///How to use DateTime with TestSchedular?
-            //var scheduler = new TestScheduler();
-            //signalingSub.ObserveOn(scheduler).Subscribe(_ => Console.WriteLine("valid disconnection period happened."));
-            //bandStatus.OnNext(Status.Connected);
-            //bandStatus.OnNext(Status.Disconnected);
-            //scheduler.AdvanceBy(TimeSpan.FromSeconds(14).Ticks);
-            //bandStatus.OnNext(Status.Connected);
-            //scheduler.AdvanceBy(TimeSpan.FromSeconds(15).Ticks);
-            //scheduler.AdvanceBy(TimeSpan.FromSeconds(2).Ticks);
+            ///How to use DateTime with TestSchedular? : IScheduler.Now
 
-            signalingSub.ObserveOn(TaskPoolScheduler.Default).Subscribe(_ => Console.WriteLine(">>>>>>> valid disconnection happened <<<<<<<"));
+            signalingSub.Subscribe(_ => Console.WriteLine(">>>>>>> valid disconnection happened <<<<<<<"));
 
             //behavior: when connected, and if there has been x amount of time in disconnection, tick.
             //Even though the tighter condition would be that
@@ -75,18 +70,17 @@ namespace playground1
             //so this behavior is ok.
             Console.WriteLine("first disconnected to open the window");
             bandStatus.OnNext(Status.Disconnected);
-            await Task.Delay(TimeSpan.FromSeconds(4));
+            scheduler.AdvanceBy(TimeSpan.FromSeconds(4).Ticks);
             Console.WriteLine("4 sec delay in Disconnected state, then Connected, done. Now it's valid time.");
             bandStatus.OnNext(Status.Connected);
-            
             Console.WriteLine("===============\nnow Connected");
             Console.WriteLine("rest 1 sec");
-            await Task.Delay(TimeSpan.FromSeconds(1));
+            scheduler.AdvanceBy(TimeSpan.FromSeconds(1).Ticks);
 
             bandStatus.OnNext(Status.Disconnected);
-            await Task.Delay(TimeSpan.FromSeconds(2));
+            scheduler.AdvanceBy(TimeSpan.FromSeconds(2).Ticks);
             bandStatus.OnNext(Status.Connected);
-            Console.WriteLine("2 sec of disconnection. Nothing should happen.");
+            Console.WriteLine("2 sec of disconnection happened. No tick should happen.");
             
 
 
