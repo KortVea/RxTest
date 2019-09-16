@@ -4,6 +4,7 @@ using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Runtime.InteropServices.ComTypes;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Reactive.Testing;
 
@@ -22,11 +23,31 @@ namespace playground1
             //test1();
 
             //measure length of window. If enough, emit a tick.
-            await test2();
+            //await test2();
 
+            test3();
 
         }
 
+        /// <summary>
+        /// the speed of the stream is determined by
+        /// 'mostrecent' - non-blocking, thus side effect rules here.
+        /// 'latest' - blocking, thus pipeline rules.
+        /// </summary>
+        private static void test3()
+        {
+            var t = Observable.Interval(TimeSpan.FromSeconds(1)).Latest()
+                .ToObservable().Subscribe(i =>
+                {
+                    Thread.Sleep(10);
+                    Console.WriteLine("latest i" + i);
+                });
+        }
+
+        /// <summary>
+        /// window function and scheduler for testing.
+        /// </summary>
+        /// <returns></returns>
         private static async Task test2()
         {
             var scheduler = new TestScheduler();
