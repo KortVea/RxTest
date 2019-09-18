@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
@@ -25,8 +26,61 @@ namespace playground1
             //measure length of window. If enough, emit a tick.
             //await test2();
 
-            test3();
+            //test3();
 
+            //test4();
+            //await test5();
+            await test6();
+
+            Console.WriteLine(">>> Le Fin <<<");
+            Console.Read();
+        }
+
+
+        /// <summary>
+        /// In Rx, it's just Throttle, no Debounce. They should mean the same thing.
+        /// Debounce is used in electrical world, for ignoring the fasting changing state that happens when a switch is flipped.
+        /// Throttle here just continues to ignore fasting changing observables, the time period specified as Throttle(TimeSpan)
+        /// </summary>
+        /// <returns></returns>
+        private static async Task test6()
+        {
+            //var s = new TestScheduler();
+            //var t= new Subject<int>();
+            var t = Observable.Generate(1, _ => true, i => i+1, i => i, i => TimeSpan.FromSeconds(Math.Abs(Math.Sin(i))))
+                .Do(_ => Console.WriteLine("-"))
+                .Throttle(TimeSpan.FromSeconds(0.5)).Timestamp();
+            t.Select(i => mock( DateTime.Now - TimeSpan.FromHours(8), DateTime.Now)).Subscribe();
+            //t.OnNext(1);
+            //await Task.Delay(TimeSpan.FromSeconds(2));
+            //t.OnNext(2);
+            //t.OnNext(3);
+            //t.OnNext(4);
+            //t.OnNext(5);
+
+        }
+
+        private static async Task test5()
+        {
+            var t = DateTime.Now;
+            var d = t.ToString("O");
+            Console.WriteLine(d);
+            var p = DateTime.Parse(d);
+            Console.WriteLine(p);
+        }
+
+        static int mock( DateTime start, DateTime end)
+        {
+            Console.WriteLine("- mock called");
+            return 3;
+        }
+
+        private static void test4()
+        {
+            var s = new List<int>();
+            s = null;
+            var b = s as IList<int>; //? new List<int>{1, 2} : new List<int>{3, 4};
+            Console.WriteLine(b);
         }
 
         /// <summary>
