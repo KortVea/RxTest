@@ -40,7 +40,7 @@ namespace playground1
         /// <summary>
         /// In Rx, it's just Throttle, no Debounce. They should mean the same thing.
         /// Debounce is used in electrical world, for ignoring the fasting changing state that happens when a switch is flipped.
-        /// Throttle here just continues to ignore fasting changing observables, the time period specified as Throttle(TimeSpan)
+        /// Throttle here just make it continue to ignore fast changing observables, the time period specified as Throttle(TimeSpan)
         /// </summary>
         /// <returns></returns>
         private static async Task test6()
@@ -85,12 +85,13 @@ namespace playground1
 
         /// <summary>
         /// the speed of the stream is determined by
-        /// 'mostrecent' - non-blocking, thus side effect rules here.
+        /// 'mostrecent' - non-blocking, thus side effect^ rules here.
         /// 'latest' - blocking, thus pipeline rules.
+        ///     ^ refers to the 10ms sleep in the subscription.
         /// </summary>
         private static void test3()
         {
-            var t = Observable.Interval(TimeSpan.FromSeconds(1)).Latest()
+            var t = Observable.Interval(TimeSpan.FromSeconds(1)).MostRecent(0)
                 .ToObservable().Subscribe(i =>
                 {
                     Thread.Sleep(10);
