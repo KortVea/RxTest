@@ -30,12 +30,33 @@ namespace playground1
 
             //test4();
             //await test5();
-            await test6();
-
+            //await test6();
+            test7();
             Console.WriteLine(">>> Le Fin <<<");
             Console.Read();
         }
 
+        /// <summary>
+        /// ref types are also passed by value. 
+        /// without ref, function modifyEmpoyee has its own copy of data.
+        /// </summary>
+        private static void test7()
+        {
+            var e1 = new Employee { MyProperty = 1 };
+            modifyEmpoyee(ref e1);
+            Console.WriteLine(e1.MyProperty);
+        }
+
+        static void modifyEmpoyee(ref Employee e)
+        {
+            e = new Employee { MyProperty = 5 };
+            Console.WriteLine(e.MyProperty);
+        }
+        class Employee
+        {
+            public int MyProperty { get; set; }
+            
+        }
 
         /// <summary>
         /// In Rx, it's just Throttle, no Debounce. They should mean the same thing.
