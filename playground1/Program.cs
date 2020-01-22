@@ -31,9 +31,34 @@ namespace playground1
             //test4();
             //await test5();
             //await test6();
-            test7();
+            //test7();
+            test8();
             Console.WriteLine(">>> Le Fin <<<");
             Console.Read();
+        }
+
+        /// <summary>
+        /// weird case of 
+        /// </summary>
+        private static void test8()
+        {
+            var epoch = 0;
+            var instigator = new Subject<bool>();
+            var pipe = instigator
+                .DistinctUntilChanged()
+                .Do(_ => epoch++)
+                .Where(x => !x)
+                .Select(_ => Observable
+                    .Interval(TimeSpan.FromSeconds(1))
+                    .Do(i => Console.WriteLine($"epoch {epoch} value {i}")))
+                .FirstOrDefaultAsync()
+                .Switch()
+                .Subscribe();
+            instigator.OnNext(false); // working pipe
+            instigator.OnNext(true); // it won't stop
+            instigator.OnNext(false); // no new working
+            instigator.OnNext(true); // no stop (it's the first still)
+
         }
 
         /// <summary>
