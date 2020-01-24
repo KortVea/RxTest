@@ -32,9 +32,36 @@ namespace playground1
             //await test5();
             //await test6();
             //test7();
-            test8();
+            //test8();
+            test9();
             Console.WriteLine(">>> Le Fin <<<");
             Console.Read();
+        }
+        /// <summary>
+        /// a case of picking out the very first tick
+        /// </summary>
+        private static void test9()
+        {
+            var ins = new BehaviorSubject<string>("");
+            ins
+                .Scan((count: (long)0, val: (string) null),
+                    (acc, val) => (++ acc.count, val))
+                .Select(info => info.val == string.Empty 
+                    ? Observable.Interval(TimeSpan.FromSeconds(1)).Select(i => i.ToString())
+                    : Observable.Return(info.val))
+                .Switch()
+                .Subscribe(x => Console.WriteLine($"{x}"));
+
+            Thread.Sleep(TimeSpan.FromSeconds(3.1));
+            ins.OnNext("a");
+            
+            ins.OnNext("");
+            Thread.Sleep(TimeSpan.FromSeconds(3.1));
+            ins.OnNext("b");
+            ins.OnNext("");
+            Thread.Sleep(TimeSpan.FromSeconds(3.1));
+            ins.OnNext("c");
+            ins.OnCompleted();
         }
 
         /// <summary>
