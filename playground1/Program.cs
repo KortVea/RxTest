@@ -33,10 +33,41 @@ namespace playground1
             //await test6();
             //test7();
             //test8();
-            test9();
+            //test9();
+            await test10();
             Console.WriteLine(">>> Le Fin <<<");
             Console.Read();
         }
+
+        private static async Task test10()
+        {
+            var origin = Observable.Timer(TimeSpan.FromSeconds(1));
+            var ctrl1 = new Subject<bool>();
+            //origin
+            //    //.Where(x => x % 2 == (long)0)
+            //    .WithLatestFrom(ctrl1,
+            //        (num, ctrl) => ctrl ? 0 : num)
+            //    .Where(x => x != 0)
+            //    .WithLatestFrom(ctrl1
+            //            .Where(i => i),
+            //        (num, _) => num)
+            //    .Select(x => x.ToString())
+            //    .Subscribe(Console.WriteLine);
+            ctrl1
+                .Where(f => f)
+                //.DistinctUntilChanged()
+                .WithLatestFrom(origin, (_, num) => num)
+                .Select(x => x.ToString())
+                .Subscribe(Console.WriteLine);
+
+            ctrl1.OnNext(true);
+            await Task.Delay(TimeSpan.FromSeconds(4.1));
+            ctrl1.OnNext(false);
+            await Task.Delay(TimeSpan.FromSeconds(4.1));
+            ctrl1.OnNext(true);
+            await Task.Delay(TimeSpan.FromSeconds(2.1));
+        }
+
         /// <summary>
         /// a case of picking out the very first tick
         /// </summary>
