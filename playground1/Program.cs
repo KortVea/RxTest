@@ -41,7 +41,10 @@ namespace playground1
 
         private static async Task test10()
         {
-            var origin = Observable.Timer(TimeSpan.FromSeconds(1));
+            var origin = Observable.Timer(TimeSpan.FromSeconds(0.1)).Publish();
+            origin.Subscribe(x => Console.WriteLine($"origin: {x}"));
+            origin.Connect(); 
+            
             var ctrl1 = new Subject<bool>();
             //origin
             //    //.Where(x => x % 2 == (long)0)
@@ -54,17 +57,21 @@ namespace playground1
             //    .Select(x => x.ToString())
             //    .Subscribe(Console.WriteLine);
             ctrl1
+                
+                .DistinctUntilChanged()
                 .Where(f => f)
-                //.DistinctUntilChanged()
                 .WithLatestFrom(origin, (_, num) => num)
                 .Select(x => x.ToString())
                 .Subscribe(Console.WriteLine);
 
             ctrl1.OnNext(true);
-            await Task.Delay(TimeSpan.FromSeconds(4.1));
+            Console.WriteLine("ctrl = true");
+            await Task.Delay(TimeSpan.FromSeconds(2.1));
             ctrl1.OnNext(false);
-            await Task.Delay(TimeSpan.FromSeconds(4.1));
+            Console.WriteLine("ctrl = false");
+            await Task.Delay(TimeSpan.FromSeconds(2.1));
             ctrl1.OnNext(true);
+            Console.WriteLine("ctrl = true");
             await Task.Delay(TimeSpan.FromSeconds(2.1));
         }
 
