@@ -38,41 +38,45 @@ namespace playground1
             Console.WriteLine(">>> Le Fin <<<");
             Console.Read();
         }
-
+        /// <summary>
+        /// one pipeline's step triggers the latest value from another pipe
+        /// </summary>
+        /// <returns></returns>
         private static async Task test10()
         {
-            var origin = Observable.Timer(TimeSpan.FromSeconds(0.1)).Publish();
-            origin.Subscribe(x => Console.WriteLine($"origin: {x}"));
-            origin.Connect(); 
-            
+            var origin = Observable.Interval(TimeSpan.FromSeconds(1)).Publish();
+            var osub =origin.Subscribe(x => Console.WriteLine($"origin: {x}"));
+            origin.Connect();
+
             var ctrl1 = new Subject<bool>();
-            //origin
-            //    //.Where(x => x % 2 == (long)0)
-            //    .WithLatestFrom(ctrl1,
-            //        (num, ctrl) => ctrl ? 0 : num)
-            //    .Where(x => x != 0)
-            //    .WithLatestFrom(ctrl1
-            //            .Where(i => i),
-            //        (num, _) => num)
-            //    .Select(x => x.ToString())
-            //    .Subscribe(Console.WriteLine);
-            ctrl1
-                
+            var sut = ctrl1
                 .DistinctUntilChanged()
                 .Where(f => f)
                 .WithLatestFrom(origin, (_, num) => num)
                 .Select(x => x.ToString())
-                .Subscribe(Console.WriteLine);
+                .Subscribe(i => Console.WriteLine($">>>{i}<<<"));
 
             ctrl1.OnNext(true);
-            Console.WriteLine("ctrl = true");
+            Console.WriteLine("ctrl = true, no step-up trigger, nothing should appear come out of it");
             await Task.Delay(TimeSpan.FromSeconds(2.1));
             ctrl1.OnNext(false);
-            Console.WriteLine("ctrl = false");
+            Console.WriteLine("ctrl = false, pre-condition; without the publish, the origin should've been disposed of.");
             await Task.Delay(TimeSpan.FromSeconds(2.1));
             ctrl1.OnNext(true);
-            Console.WriteLine("ctrl = true");
+            Console.WriteLine("ctrl = true, step-up trigger! the origin is subscribed from here ? its current value should be returned");
             await Task.Delay(TimeSpan.FromSeconds(2.1));
+            ctrl1.OnNext(false);
+            ctrl1.OnNext(true);
+            Console.WriteLine("one step: ");
+            await Task.Delay(TimeSpan.FromSeconds(2.1));
+            ctrl1.OnNext(false);
+            ctrl1.OnNext(true);
+            Console.WriteLine("one step: ");
+            await Task.Delay(TimeSpan.FromSeconds(2.1));
+            sut.Dispose();
+            Console.WriteLine("sut disposed");
+            osub.Dispose();
+            Console.WriteLine("origin disposed");
         }
 
         /// <summary>
