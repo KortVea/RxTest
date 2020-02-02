@@ -34,9 +34,26 @@ namespace playground1
             //test7();
             //test8();
             //test9();
-            await test10();
+            //await test10();
+            await test11();
             Console.WriteLine(">>> Le Fin <<<");
             Console.Read();
+        }
+
+        /// <summary>
+        /// dispose doesn't make sub a null.
+        /// </summary>
+        /// <returns></returns>
+        private static async Task test11()
+        {
+            var sub = new Subject<bool>();
+            sub.OnCompleted();
+            sub.Dispose();
+            var sub2 = Observable.Timer(TimeSpan.FromSeconds(1)).Subscribe(_ => Console.WriteLine("sub 2 done"));
+            await Task.Delay(TimeSpan.FromSeconds(2));
+            Console.ReadKey();
+            Console.WriteLine("unsubbing ...");
+            sub2.Dispose();
         }
         /// <summary>
         /// one pipeline's step triggers the latest value from another pipe
