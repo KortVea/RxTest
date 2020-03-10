@@ -34,9 +34,35 @@ namespace playground1
             //test7();
             //test8();
             //test9();
-            await test10();
+            //await test10();
+            //test11();
+            test12();
             Console.WriteLine(">>> Le Fin <<<");
             Console.Read();
+        }
+
+        /// <summary>
+        /// how to delay a throw otherwise instantaneous.
+        /// </summary>
+        private static void test12()
+        {
+            Observable
+                .Throw<TimeoutException>(new TimeoutException())
+                .Materialize()
+                .Delay(TimeSpan.FromSeconds(2))
+                .Dematerialize()
+                .Subscribe(x => Console.WriteLine(x.ToString()),
+                    i => Console.WriteLine(i.ToString()),
+                    ()=> Console.WriteLine("completed"));
+        }
+        enum Tenum
+        {
+            High, Low
+        }
+        private static void test11()
+        {
+            const Tenum t = Tenum.High;
+            Console.WriteLine(t is Tenum.Low);
         }
         /// <summary>
         /// one pipeline's step triggers the latest value from another pipe
