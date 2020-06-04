@@ -34,27 +34,28 @@ namespace playground1
             //.Timeout won't work because timeout measure between two elements the length of time.
 
             var timer = Observable.Timer(TimeSpan.FromSeconds(6)).Select(_ => false);
-            var built = Observable.FromAsync(getResult)
-                .Delay(TimeSpan.FromSeconds(0.1))
+            var built = Observable.FromAsync(() => getResult())
+                //.Delay(TimeSpan.FromSeconds(0.1))
                 .Repeat()
                 .TakeWhileInclusive(succeeded => !succeeded)
                 .Where(succeeded => succeeded)
                 .Do(i => Console.WriteLine($"built pipeline reached an {i}"));
 
-            Observable.Amb(built, timer)
+            Observable
+                .Amb(built, timer)
                 .Subscribe(i => Console.WriteLine($"amb ticked - {i}"),
                 (() => Console.WriteLine($"completed")));
 
         }
 
         private static int count = 0;
-        private static async Task<bool> getResult()
+        private static Task<bool> getResult()
         {
             count++;
             var result = count == 5;
             //await Task.Delay(TimeSpan.FromSeconds(1));
             Console.WriteLine($"async getResult = {result}");
-            return result;
+            return Task.FromResult(result);
         }
 
         private static void test13()
