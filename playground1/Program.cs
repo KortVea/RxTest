@@ -21,24 +21,45 @@ namespace playground1
 
         static async Task Main(string[] args)
         {
-            //test1();
-
-            //measure length of window. If enough, emit a tick.
-            //await test2();
-
-            //test3();
-
-            //test4();
-            //await test5();
-            //await test6();
-            //test7();
-            //test8();
-            //test9();
-            //await test10();
-            //test11();
-            test12();
+            test14();
             Console.WriteLine(">>> Le Fin <<<");
             Console.Read();
+        }
+
+        /// <summary>
+        /// race with amb for repeating until a success.
+        /// </summary>
+        private static void test14()
+        {
+            //.Timeout won't work because timeout measure between two elements the length of time.
+
+            var timer = Observable.Timer(TimeSpan.FromSeconds(6)).Select(_ => false);
+            var built = Observable.FromAsync(getResult)
+                .Delay(TimeSpan.FromSeconds(0.1))
+                .Repeat()
+                .TakeWhileInclusive(succeeded => !succeeded)
+                .Where(succeeded => succeeded)
+                .Do(i => Console.WriteLine($"built pipeline reached an {i}"));
+
+            Observable.Amb(built, timer)
+                .Subscribe(i => Console.WriteLine($"amb ticked - {i}"),
+                (() => Console.WriteLine($"completed")));
+
+        }
+
+        private static int count = 0;
+        private static async Task<bool> getResult()
+        {
+            count++;
+            var result = count == 5;
+            //await Task.Delay(TimeSpan.FromSeconds(1));
+            Console.WriteLine($"async getResult = {result}");
+            return result;
+        }
+
+        private static void test13()
+        {
+
         }
 
         /// <summary>
@@ -59,7 +80,7 @@ namespace playground1
         {
             High, Low
         }
-        private static void test11()
+        private static void test111()
         {
             const Tenum t = Tenum.High;
             Console.WriteLine(t is Tenum.Low);
@@ -377,6 +398,41 @@ namespace playground1
             truckConnection.OnNext(Status.Connected);
 
             truckConnection.OnCompleted();
+        }
+    }
+
+
+}
+
+namespace System.Reactive.Linq
+{
+    using System;
+
+    public static class PaceExtensions
+    {
+        // see http://stackoverflow.com/a/21589238/5380
+        // TODO: this implementation is terrible and doesn't allow control over scheduling. Replace with something sane.
+        public static IObservable<T> Pace<T>(this IObservable<T> source, TimeSpan interval) =>
+            source
+                .Select(
+                    i =>
+                        Observable
+                            .Empty<T>()
+                            .Delay(interval)
+                            .StartWith(i))
+                .Concat();
+    }
+}
+namespace System.Reactive.Linq
+{
+    public static class TakeWhileExtensions
+    {
+        // Emits matching values, but includes the value that failed the filter
+        public static IObservable<T> TakeWhileInclusive<T>(
+            this IObservable<T> source, Func<T, bool> predicate)
+        {
+            return source.Publish(co => co.TakeWhile(predicate)
+                .Merge(co.SkipWhile(predicate).Take(1)));
         }
     }
 }
