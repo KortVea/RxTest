@@ -27,13 +27,13 @@ namespace playground1
         }
 
         /// <summary>
-        /// repeat number
+        /// repeat with backoff
         /// </summary>
         private static void test15()
         {
             var source = Observable.Range(1, 3);
             source
-                .Repeat(0)
+                .RepeatWithBackoff(2, i => TimeSpan.FromSeconds(3))
                 .Subscribe(i => Console.WriteLine($"{i}"),
                     (() => Console.WriteLine("completed")));
 
