@@ -21,9 +21,22 @@ namespace playground1
 
         static async Task Main(string[] args)
         {
-            test14();
+            test15();
             Console.WriteLine(">>> Le Fin <<<");
             Console.Read();
+        }
+
+        /// <summary>
+        /// repeat number
+        /// </summary>
+        private static void test15()
+        {
+            var source = Observable.Range(1, 3);
+            source
+                .Repeat(0)
+                .Subscribe(i => Console.WriteLine($"{i}"),
+                    (() => Console.WriteLine("completed")));
+
         }
 
         /// <summary>
