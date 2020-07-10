@@ -21,9 +21,67 @@ namespace playground1
 
         static async Task Main(string[] args)
         {
-            test15();
+            test16();
             Console.WriteLine(">>> Le Fin <<<");
             Console.Read();
+        }
+
+        /// <summary>
+        /// RefCount is handy for
+        /// 1. reference counting how many sub there are, if reaching 0 then disposing the CONNECTION automatically.
+        /// 2. same for the auto .Connect() maneuver - if goes from NONE to ONE, then .Connect() is called right when .sub is called.
+        /// </summary>
+        private static void test17()
+        {
+            var period = TimeSpan.FromSeconds(1);
+            var observable = Observable.Interval(period)
+                .Do(l => Console.WriteLine("Publishing {0}", l)) //side effect to show it is running
+                .Publish()
+                .RefCount();
+            //observable.Connect(); Use RefCount instead now 
+            Console.WriteLine("Press any key to subscribe");
+            Console.ReadKey();
+            var subscription = observable.Subscribe(i => Console.WriteLine("subscription : {0}", i));
+            var subscription2 = observable.Subscribe(i => Console.WriteLine("subscription2 : {0}", i));
+            Console.WriteLine("Press any key to unsubscribe one of the two.");
+            Console.ReadKey();
+            subscription.Dispose();
+            Console.WriteLine("Press any key to subscribe");
+            Console.ReadKey();
+            var subscription3 = observable.Subscribe(i => Console.WriteLine("subscription3 : {0}", i));
+            Console.WriteLine("Press any key to exit.");
+            Console.ReadKey();
+        }
+
+        /// <summary>
+        /// publish IS sharing, meaning the pipeline is working if Connected, no need of a subscription.
+        /// Only disposal of the connection will possibly reset the hot observable.
+        /// subscription is about 'client' side receiving. unsub doesn't affect the publishing / sharing at all.
+        /// RefCount is about automatic disposal and lazy connection.
+        /// </summary>
+        private static void test16()
+        {
+            var period = TimeSpan.FromSeconds(2);
+            var observable = Observable.Interval(period)
+                .Do(l => Console.WriteLine("Publishing {0}", l)) //Side effect to show it is running
+                .Publish();
+            Console.WriteLine("Press any key to connect");
+            Console.ReadKey();
+            var conn = observable.Connect();
+            Console.WriteLine("connected.");
+            Console.WriteLine("Press any key to subscribe");
+            Console.ReadKey();
+            var subscription = observable.Subscribe(i => Console.WriteLine("subscription : {0}", i));
+            Console.WriteLine("Press any key to unsubscribe.");
+            Console.ReadKey();
+            subscription.Dispose();
+            Console.WriteLine("Press any key to disconnect.");
+            Console.ReadKey();
+            conn.Dispose();
+            Console.WriteLine("Press any key to connect again.");
+            Console.ReadKey();
+            var conn2 = observable.Connect();
+            
         }
 
         /// <summary>
