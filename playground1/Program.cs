@@ -21,14 +21,14 @@ namespace playground1
 
         static async Task Main(string[] args)
         {
-            test16();
+            test17();
             Console.WriteLine(">>> Le Fin <<<");
             Console.Read();
         }
 
         /// <summary>
         /// RefCount is handy for
-        /// 1. reference counting how many sub there are, if reaching 0 then disposing the CONNECTION automatically.
+        /// 1. reference counting how many sub there are, if reaching 0 then disposing the CONNECTION automatically. Further sub will reset the pipeline (starting all over again)
         /// 2. same for the auto .Connect() maneuver - if goes from NONE to ONE, then .Connect() is called right when .sub is called.
         /// </summary>
         private static void test17()
@@ -49,8 +49,15 @@ namespace playground1
             Console.WriteLine("Press any key to subscribe");
             Console.ReadKey();
             var subscription3 = observable.Subscribe(i => Console.WriteLine("subscription3 : {0}", i));
-            Console.WriteLine("Press any key to exit.");
+            Console.WriteLine("Press any key to un sub 2 and 3, and sub 4.");
             Console.ReadKey();
+            subscription3.Dispose();
+            subscription2.Dispose();
+            var sub4 = observable.Subscribe(i => Console.WriteLine("subscription4 : {0}", i));
+            Console.WriteLine("Press any key to unsub 4.");
+            Console.ReadKey();
+            sub4.Dispose();
+
         }
 
         /// <summary>
