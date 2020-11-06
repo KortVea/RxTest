@@ -21,80 +21,93 @@ namespace playground1
 
         static async Task Main(string[] args)
         {
-            test18();
+            test19();
             Console.WriteLine(">>> Le Fin <<<");
             Console.Read();
         }
 
         /// <summary>
+        /// NOT good for when you wish each projected observable to complete before CONCAT with the next,
+        /// because this is NOT a CONCAT. It'd be only a few different obs in existance.
+        /// Use IEnumerable of IObserable then CONCAT.
+        /// </summary>
+        private static void test19()
+        {
+            var test = new[] {"a", "b", "c" };
+            test
+                .ToObservable()
+                .Select(x => x + "-")
+                .Subscribe(i => Console.Write(i));
+        }
+        /// <summary>
         /// Interlocked class to protect shared resource
         /// </summary>
-        private static void test18()
-        {
-            MyInterlockedExchangeExampleClass.Main();
-        }
+        //private static void test18()
+        //{
+        //    MyInterlockedExchangeExampleClass.Main();
+        //}
 
-        class MyInterlockedExchangeExampleClass
-        {
-            //0 for false, 1 for true.
-            private static int usingResource = 0;
+        //class MyInterlockedExchangeExampleClass
+        //{
+        //    //0 for false, 1 for true.
+        //    private static int usingResource = 0;
 
-            private const int numThreadIterations = 5;
-            private const int numThreads = 10;
+        //    private const int numThreadIterations = 5;
+        //    private const int numThreads = 10;
 
-            public static void Main()
-            {
-                Thread myThread;
-                Random rnd = new Random();
+        //    public static void Main()
+        //    {
+        //        Thread myThread;
+        //        Random rnd = new Random();
 
-                for (int i = 0; i < numThreads; i++)
-                {
-                    myThread = new Thread(new ThreadStart(MyThreadProc));
-                    myThread.Name = String.Format("Thread{0}", i + 1);
+        //        for (int i = 0; i < numThreads; i++)
+        //        {
+        //            myThread = new Thread(new ThreadStart(MyThreadProc));
+        //            myThread.Name = String.Format("Thread{0}", i + 1);
 
-                    //Wait a random amount of time before starting next thread.
-                    Thread.Sleep(rnd.Next(0, 1000));
-                    myThread.Start();
-                }
-            }
+        //            //Wait a random amount of time before starting next thread.
+        //            Thread.Sleep(rnd.Next(0, 1000));
+        //            myThread.Start();
+        //        }
+        //    }
 
-            private static void MyThreadProc()
-            {
-                for (int i = 0; i < numThreadIterations; i++)
-                {
-                    UseResource();
+        //    private static void MyThreadProc()
+        //    {
+        //        for (int i = 0; i < numThreadIterations; i++)
+        //        {
+        //            UseResource();
 
-                    //Wait 1 second before next attempt.
-                    Thread.Sleep(1000);
-                }
-            }
+        //            //Wait 1 second before next attempt.
+        //            Thread.Sleep(1000);
+        //        }
+        //    }
 
-            //A simple method that denies reentrancy.
-            static bool UseResource()
-            {
-                //0 indicates that the method is not in use.
-                if (0 == Interlocked.Exchange(ref usingResource, 1))
-                {
-                    Console.WriteLine("{0} acquired the lock", Thread.CurrentThread.Name);
+        //    //A simple method that denies reentrancy.
+        //    static bool UseResource()
+        //    {
+        //        //0 indicates that the method is not in use.
+        //        if (0 == Interlocked.Exchange(ref usingResource, 1))
+        //        {
+        //            Console.WriteLine("{0} acquired the lock", Thread.CurrentThread.Name);
 
-                    //Code to access a resource that is not thread safe would go here.
+        //            //Code to access a resource that is not thread safe would go here.
 
-                    //Simulate some work
-                    Thread.Sleep(500);
+        //            //Simulate some work
+        //            Thread.Sleep(500);
 
-                    Console.WriteLine("{0} exiting lock", Thread.CurrentThread.Name);
+        //            Console.WriteLine("{0} exiting lock", Thread.CurrentThread.Name);
 
-                    //Release the lock
-                    Interlocked.Exchange(ref usingResource, 0);
-                    return true;
-                }
-                else
-                {
-                    Console.WriteLine("   {0} was denied the lock", Thread.CurrentThread.Name);
-                    return false;
-                }
-            }
-        }
+        //            //Release the lock
+        //            Interlocked.Exchange(ref usingResource, 0);
+        //            return true;
+        //        }
+        //        else
+        //        {
+        //            Console.WriteLine("   {0} was denied the lock", Thread.CurrentThread.Name);
+        //            return false;
+        //        }
+        //    }
+        //}
         /// <summary>
         /// RefCount is handy for
         /// 1. reference counting how many sub there are, if reaching 0 then disposing the CONNECTION automatically. Further sub will reset the pipeline (starting all over again)
