@@ -26,6 +26,8 @@ namespace playground1
             Console.Read();
         }
 
+        /// static functions can have local variables and they're retained IF the static function returns a pointer (FUNC) so that it's kept alive
+
         /// <summary>
         /// NOT good for when you wish each projected observable to complete before CONCAT with the next,
         /// because this is NOT a CONCAT. It'd be only a few different obs in existance.
