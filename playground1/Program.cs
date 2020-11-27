@@ -27,6 +27,7 @@ namespace playground1
         }
 
         /// static functions can have local variables and they're retained IF the static function returns a pointer (FUNC) so that it's kept alive
+        /// multiple tasks exist in once Observable is problematic in terms of reentrancy. Instead, each should be in an Observable.FromAsync, and use some kinda lock to prevent reentrancy.
 
         /// <summary>
         /// NOT good for when you wish each projected observable to complete before CONCAT with the next,
