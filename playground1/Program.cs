@@ -8,6 +8,7 @@ using System.Runtime.InteropServices.ComTypes;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Reactive.Testing;
+using ReactiveUI;
 
 namespace playground1
 {
@@ -21,9 +22,57 @@ namespace playground1
 
         static async Task Main(string[] args)
         {
-            test19();
+            test20();
             Console.WriteLine(">>> Le Fin <<<");
             Console.Read();
+        }
+
+        /// <summary>
+        /// Execute().Subscribe() execute the command once, and only get the last result when the command obs `completes`. And the result is behavioral.
+        /// command.Subscribe() simply observes whatever ticks through. but without Execute, nothing will tick.
+        /// 
+        /// // An asynchronous command created from IObservable<int> that 
+        /// // waits 2 seconds and then returns 42 integer.
+        /// var command = ReactiveCommand.CreateFromObservable<Unit, int>(
+        ///    _ => Observable.Return(42).Delay(TimeSpan.FromSeconds(2)));
+        ///
+        /// Subscribing to the observable returned by `Execute()` will 
+        /// tick through the value `42` with a 2-second delay.
+        /// command.Execute(Unit.Default).Subscribe();
+        ///
+        /// We can also subscribe to _all_ values that a command
+        /// emits by using the `Subscribe()` method on the
+        /// ReactiveCommand itself.
+        /// command.Subscribe(value => Console.WriteLine(value));
+        ///
+        /// Regardless of whether your command is synchronous or asynchronous in nature, you execute it via the Execute method.
+        /// You get back an observable that will tick the command's result value when execution completes
+        ///
+        /// // Creates a hot Observable<T> that emits a new value every 5 
+        /// minutes and invokes the SaveCommand<Unit, Unit>. Don't forget
+        /// to dispose the subscription produced by InvokeCommand().
+        /// var interval = TimeSpan.FromMinutes(5);
+        /// Observable.Timer(interval, interval)
+        /// .Select(time => Unit.Default)
+        ///     .InvokeCommand(this, x => x.SaveCommand);
+        /// Hint InvokeCommand respects the command's executability. That is, if the command's CanExecute method returns false, InvokeCommand will not execute the command when the source observable ticks.
+        /// </summary>
+        private static void test20()
+        {
+            var exe = Observable.Interval(TimeSpan.FromSeconds(1)).Take(3);
+           
+            var command = ReactiveCommand.CreateFromObservable<long>(() => exe, Observable.Return(false));
+            command.Subscribe(x => Console.WriteLine($"cmd subbed: {x}"));//nothing happens with this.
+
+            //command.Execute().Subscribe(x => Console.WriteLine($"exe subbed: {x}"));//now command sub sees all, while exe sub sees the final one.
+            //command.FirstOrDefaultAsync().Subscribe(x => Console.WriteLine($"command ? exe? subbed: {x}")); 
+            // command! first or async. without execute, doesn't work.
+
+            // Execute() overrides canExecute ???? YES!!!!
+            //command.FirstOrDefaultAsync().Subscribe(x => Console.WriteLine($"first or default : {x}")); // Not an answer.
+
+            // InvokeCommand is the answer. It respects canExecute!
+            Observable.Start((() => { })).InvokeCommand(command);
         }
 
         /// static functions can have local variables and they're retained IF the static function returns a pointer (FUNC) so that it's kept alive
