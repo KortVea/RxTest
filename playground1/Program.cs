@@ -22,9 +22,17 @@ namespace playground1
 
         static async Task Main(string[] args)
         {
-            test20();
+            test21();
             Console.WriteLine(">>> Le Fin <<<");
             Console.Read();
+        }
+
+        private static void test21()
+        {
+            var sut = Observable.Generate(1, _ => true, i => i+=1, i => i, i => TimeSpan.FromSeconds(Math.Sin(i)));
+            sut
+                .Throttle(TimeSpan.FromSeconds(0.5))
+                .Subscribe(Console.WriteLine);
         }
 
         /// <summary>
